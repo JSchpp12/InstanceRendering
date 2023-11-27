@@ -20,11 +20,22 @@ layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
 	int renderSettings; 
 } globalUbo; 
 
-//TODO: combine with above 
-layout(binding = 0, set = 1) uniform uniformBufferObject{
-	mat4 modelMatrix; 
-	mat4 normalModelMatrix; 
-} objectUbo;
+layout (push_constant) uniform constants{
+	int instanceCount; 
+} PushConstants; 
+
+layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
+	mat4 proj;
+	mat4 view;  
+	mat4 inverseView; 
+	int numLights;
+	int renderSettings; 
+} globalUbo; 
+
+layout(binding = 0, set = 1) uniform instanceBufferObject{
+	mat4 modelMatrix[PushConstants.instanceCount]; 
+	mat4 normalModelMatrix[PushConstants.instanceCount]; 
+} instanceObjectUbo;
 
 layout(location = 0) out vec3 outFragColor; 
 layout(location = 1) out vec2 outFragTextureCoordinate; 

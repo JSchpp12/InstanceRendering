@@ -20,10 +20,17 @@ Application::Application(star::StarScene& scene) : StarApplication(scene)
         auto materialsPath = mediaDirectoryPath + "models/lion-statue/source";
         
         auto lion = BasicObject::New(lionPath);
-        lion->setScale(glm::vec3{ 0.04f, 0.04f, 0.04f });
-        lion->setPosition(glm::vec3{ 0.0, 0.0, 0.0 });
-        lion->rotateGlobal(star::Type::Axis::x, -90);
-        lion->moveRelative(glm::vec3{ 0.0, -1.0, 0.0 });
+        auto& lion_f = lion->createInstance(); 
+        lion_f.setScale(glm::vec3{ 0.04f, 0.04f, 0.04f });
+        lion_f.setPosition(glm::vec3{ 0.0, 0.0, 0.0 });
+        lion_f.rotateGlobal(star::Type::Axis::x, -90);
+        lion_f.moveRelative(glm::vec3{ 0.0, -1.0, 0.0 });
+        auto& lion_s = lion->createInstance();
+        lion_s.setScale(glm::vec3{ 0.04f, 0.04f, 0.04f });
+        lion_s.setPosition(glm::vec3{ 0.0, 0.0, 0.0 });
+        lion_s.rotateGlobal(star::Type::Axis::x, -90);
+        lion_s.moveRelative(glm::vec3{ 0.0, -1.5, 0.0 });
+
         this->scene.add(std::move(lion)); 
 
         this->scene.add(std::make_unique<star::Light>(star::Type::Light::directional, glm::vec3{10, 10, 10}));

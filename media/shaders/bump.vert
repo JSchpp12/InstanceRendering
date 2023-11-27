@@ -10,7 +10,7 @@ layout(location = 5) in vec3 inBiTangent;
 layout(location = 6) in vec3 inMatAmbient; 
 layout(location = 7) in vec3 inMatDiffuse; 
 layout(location = 8) in vec3 inMatSpecular; 
-layout(location = 9) in float inMatShininess; 
+layout(location = 9) in float inMatShininess;  
 
 layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
 	mat4 proj;
@@ -20,11 +20,13 @@ layout(binding = 0, set = 0) uniform GlobalUniformBufferObject {
 	int renderSettings; 
 } globalUbo; 
 
-//TODO: combine with above 
-layout(binding = 0, set = 1) uniform uniformBufferObject{
-	mat4 modelMatrix; 
-	mat4 normalModelMatrix; 
-} objectUbo;
+layout(binding = 0, set = 1) uniform instanceModelMatrix{
+	mat4 modelMatrix[1024]; 
+};
+
+layout(binding = 1, set = 1) uniform instanceNormalMatrix{
+	mat4 normalMatrix[1024];
+}; 
 
 layout(location = 0) out vec3 outFragColor; 
 layout(location = 1) out vec2 outFragTextureCoordinate; 
@@ -38,19 +40,18 @@ layout(location = 8) out mat3 outTBNMat;
 
 
 void main() {
-	vec4 positionWorld = objectUbo.modelMatrix * vec4(inPosition, 1.0); 
+	vec4 positionWorld = modelMatrix[gl_InstanceIndex] * vec4(inPosition, 1.0); 
 
 	//calculate TBN mat for use from translating sampled normal matrix from Tangent space to model space
-	vec3 T = normalize(vec3(objectUbo.modelMatrix * vec4(inTangent, 0.0)));
-	vec3 B = normalize(vec3(objectUbo.modelMatrix * vec4(inBiTangent, 0.0)));
-	vec3 N = normalize(vec3(objectUbo.modelMatrix * vec4(inNormal, 0.0))); 
+	vec3 T = normalize(vec3(modelMatrix[gl_InstanceIndex] * vec4(inTangent, 0.0)));
+	vec3 B = normalize(vec3(modelMatrix[gl_InstanceIndex] * vec4(inBiTangent, 0.0)));
+	vec3 N = normalize(vec3(modelMatrix[gl_InstanceIndex] * vec4(inNormal, 0.0))); 
 	//Gram-Schmidt process to re-orthogonalize TBN vectors
 //	T = normalize(T - dot(T, N) * N
 	outTBNMat = mat3(T, B, N); 
 
 	gl_Position = globalUbo.proj * globalUbo.view * positionWorld;
-	outFragNormalWorld = normalize(mat3(objectUbo.normalModelMatrix) * inNormal);
-
+	outFragNormalWorld = normalize(mat3(normalMatrix[gl_InstanceIndex]) * inNormal); 
 	//pass through needed properties to fragments
 	outFragPositionWorld = positionWorld.xyz; 
 	outFragColor = inColor; 
