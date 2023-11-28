@@ -62,61 +62,12 @@ void Application::Load()
 
 void Application::Update()
 {
-   /* auto now = std::chrono::steady_clock::now();
-    float elapsedTime = std::chrono::duration<float>(now - timeSinceLastUpdate).count();
-    rock->rotateRelative(star::Type::Axis::y, elapsedTime * 30);
 
-    if (star::KeyStates::state(KEY::RIGHT)) {
-        auto rot = glm::mat4(1.0f);
-        float rotationAmt = (float)this->time.timeElapsedLastFrameSeconds() * sunSpeed;
-        rot = glm::rotate(rot, rotationAmt, glm::vec3{ 0.0f, 0.0f, -1.0f });
-        sun->direction = rot * sun->direction;
-    }
-    else if (star::KeyStates::state(KEY::LEFT)) {
-        auto rot = glm::mat4(1.0f);
-        float rotationAmt = (float)this->time.timeElapsedLastFrameSeconds() * sunSpeed;
-        rot = glm::rotate(rot, rotationAmt, glm::vec3{ 0.0f, 0.0f, 1.0f });
-        sun->direction = rot * sun->direction;
-    }
-
-    if (star::KeyStates::state(KEY::DOWN)) {
-        spot->setOuterDiameter(spot->getOuterDiameter() + (spotSpeed * elapsedTime));
-        std::cout << spot->getOuterDiameter() << std::endl;
-    }
-    else if (star::KeyStates::state(KEY::Y)) {
-        spot->setOuterDiameter(spot->getOuterDiameter() - (spotSpeed * elapsedTime));
-        std::cout << spot->getOuterDiameter() << std::endl;
-    }
-
-    if (star::KeyStates::state(KEY::J)) {
-        spot->setInnerDiameter(spot->getInnerDiameter() + (spotSpeed * elapsedTime));
-        std::cout << spot->getInnerDiameter() << std::endl;
-    }
-    else if (star::KeyStates::state(KEY::H)) {
-        spot->setInnerDiameter(spot->getInnerDiameter() - (spotSpeed * elapsedTime));
-        std::cout << spot->getInnerDiameter() << std::endl;
-    }
-    this->time.updateLastFrameTime();*/
 }
 
 void Application::onKeyPress(int key, int scancode, int mods)
 {
-    //if (key == GLFW_KEY_M) {
-    //    auto& light = StarEngine::sceneBuilder.light(lightList.at(disabledLightCounter));
-    //    light.setEnabled();
-    //    if (!upCounter && disabledLightCounter == 0) {
-    //        upCounter = true;
-    //    }
-    //    else if (upCounter && disabledLightCounter == lightList.size() - 1) {
-    //        upCounter = false;
-    //    }
-    //    disabledLightCounter = upCounter ? disabledLightCounter + 1 : disabledLightCounter - 1;
-    //}
-   
 
-    //if (key == GLFW_KEY_Z) {
-    //    sun->setEnabled();
-    //}
 }
 
 void Application::onKeyRelease(int key, int scancode, int mods)
