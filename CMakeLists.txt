@@ -14,7 +14,7 @@ add_subdirectory("extern/starlight")
 set(${PROJECT_NAME}_SOURCE 
 	"src/main.cpp"
  	"src/Application.cpp"
-)
+ "src/DispNormObj.cpp")
 
 set(${PROJECT_NAME}_HEADERS 
 )

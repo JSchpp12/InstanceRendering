@@ -14,6 +14,7 @@
 #include "Key.hpp"
 #include "BasicObject.hpp"
 #include "ObjectManager.hpp"
+#include "DispNormObj.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -33,8 +34,6 @@ public:
 
     void Load();
 
-    void Update();
-
     virtual std::string getApplicationName() { return "Starlight Application"; }
 
     void onKeyPress(int key, int scancode, int mods) override;
@@ -42,18 +41,7 @@ public:
 protected:
 
 private:
-    const int sunSpeed = 50;
-    const float spotSpeed = 2;
-    double scaleAmt = 0.1;
-
-    star::Light* sun = nullptr;
-    star::Light* spot = nullptr;
-
-
-    static int disabledLightCounter;
-    static bool upCounter;
-    static bool rotatingCounterClock;
-    static std::chrono::steady_clock::time_point timeSinceLastUpdate;
+    std::chrono::steady_clock::time_point timeSinceLastUpdate;
 
     // Inherited via StarApplication
     void onKeyRelease(int key, int scancode, int mods) override;

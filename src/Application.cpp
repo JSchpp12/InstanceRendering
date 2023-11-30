@@ -2,12 +2,6 @@
 
 using namespace star; 
 
-int Application::disabledLightCounter = int(0);
-bool Application::upCounter = true;
-bool Application::rotatingCounterClock = true;
-
-std::chrono::steady_clock::time_point Application::timeSinceLastUpdate = std::chrono::steady_clock::now();
-
 Application::Application(star::StarScene& scene) : StarApplication(scene)
 {
     this->camera.setPosition(glm::vec3{ 2.0, 1.0f, 3.0f });
@@ -22,12 +16,14 @@ Application::Application(star::StarScene& scene) : StarApplication(scene)
         auto lion = BasicObject::New(lionPath);
         const int width = 25; 
         const float mvmt = 0.3f; 
+        const float rotAmt = 7; 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
                 auto& lion_f = lion->createInstance();
                 lion_f.setScale(glm::vec3{ 0.01f, 0.01f, 0.01f });
                 lion_f.setPosition(glm::vec3{ 0.0, 0.0, 0.0 });
                 lion_f.rotateGlobal(star::Type::Axis::x, -90);
+                lion_f.rotateRelative(star::Type::Axis::y, rotAmt*i*j);
                 lion_f.moveRelative(glm::vec3{ mvmt * i, 0.0, mvmt * j});
             }
         }
@@ -58,11 +54,6 @@ Application::Application(star::StarScene& scene) : StarApplication(scene)
 
 void Application::Load()
 {
-}
-
-void Application::Update()
-{
-
 }
 
 void Application::onKeyPress(int key, int scancode, int mods)

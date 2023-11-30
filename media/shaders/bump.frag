@@ -60,19 +60,6 @@ layout(binding = 1, set = 0) buffer globalLightBuffer{
 layout(binding = 0, set = 2) uniform sampler2D textureSampler; 
 layout(binding = 1, set = 2) uniform sampler2D normalMapSampler; 
 
-//TODO: move struct init to a different place - not good idea to do this for every fragment
-RenderSettings createSettingsStruct(){
-	RenderSettings settingsChecker = {
-		0x0, 
-		0x1,
-		0x2,
-		0x3,
-		0x4, 
-		//render features
-		0x10000
-	};
-	return(settingsChecker); 
-}
 //TODO: same move here 
 Light_Type createLightTypeStruct(){
 	Light_Type lightChecker = {
@@ -92,7 +79,6 @@ void main() {
 	bool isDirectional = false; 
 	vec3 rawDiffuse = vec3(0.0);		//tmp storage for diffuse lighting calculation result before applying modifiers
 	vec3 rawSpecular = vec3(0.0);		//tmp storage for specular lighting calculation result before applying modifiers
-	RenderSettings settingsChecker = createSettingsStruct(); 
 	Light_Type lightChecker = createLightTypeStruct(); 
 
 	vec3 ambientLight = vec3(0.0); 
