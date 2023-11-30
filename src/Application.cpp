@@ -13,17 +13,19 @@ Application::Application(star::StarScene& scene) : StarApplication(scene)
         auto lionPath = star::ConfigFile::getSetting(star::Config_Settings::mediadirectory) + "models/lion-statue/source/rapid.obj";
         auto materialsPath = mediaDirectoryPath + "models/lion-statue/source";
         
-        auto lion = BasicObject::New(lionPath);
-        const int width = 25; 
+        auto lion = DispNormObj::New(lionPath);
+        const int width = 15; 
         const float mvmt = 0.3f; 
-        const float rotAmt = 7; 
+        const float texDispAmt = float(1.0f / ((width-1)*2));  
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
                 auto& lion_f = lion->createInstance();
+                DispNormObjInstance& lion_ptr = static_cast<DispNormObjInstance&>(lion_f); 
+                auto amt = texDispAmt * (i + j);
+                lion_ptr.textureDisplacement = lion_ptr.textureDisplacement * amt;
                 lion_f.setScale(glm::vec3{ 0.01f, 0.01f, 0.01f });
                 lion_f.setPosition(glm::vec3{ 0.0, 0.0, 0.0 });
                 lion_f.rotateGlobal(star::Type::Axis::x, -90);
-                lion_f.rotateRelative(star::Type::Axis::y, rotAmt*i*j);
                 lion_f.moveRelative(glm::vec3{ mvmt * i, 0.0, mvmt * j});
             }
         }

@@ -34,7 +34,7 @@ public:
 
     void Load();
 
-    virtual std::string getApplicationName() { return "Starlight Application"; }
+    virtual std::string getApplicationName() { return "Instance Rendering"; }
 
     void onKeyPress(int key, int scancode, int mods) override;
 

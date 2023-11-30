@@ -59,7 +59,8 @@ void main() {
 	//pass through needed properties to fragments
 	outFragPositionWorld = positionWorld.xyz; 
 	outFragColor = inColor; 
-	outFragTextureCoordinate = textureDispMat.xy * inTexCoord; 
+	// vec2 texture_coord = textureDispMat[gl_instanceIndex] * inTexCoord; 
+	outFragTextureCoordinate = vec2(vec4(inTexCoord.xy, 1.0, 1.0) * textureDispMat[gl_InstanceIndex]).xy; 
 	outFragMatAmbient = inMatAmbient; 
 	outFragMatDiffuse = inMatDiffuse; 
 	outFragMatSpecular = inMatSpecular; 
