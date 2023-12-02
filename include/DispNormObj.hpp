@@ -35,6 +35,15 @@ public:
 	virtual std::vector<std::unique_ptr<star::StarDescriptorSetLayout>> getDescriptorSetLayouts(star::StarDevice& device) override;
 
 	virtual void initRender(int numFramesInFlight) override;
+
+	virtual void prepRender(star::StarDevice& device, vk::Extent2D swapChainExtent,
+		vk::PipelineLayout pipelineLayout, vk::RenderPass renderPass, int numSwapChainImages,
+		std::vector<std::reference_wrapper<star::StarDescriptorSetLayout>> groupLayout, std::vector<std::vector<vk::DescriptorSet>> globalSets) override;
+
+	virtual void prepRender(star::StarDevice& device, int numSwapChainImages,
+		std::vector<std::reference_wrapper<star::StarDescriptorSetLayout>> groupLayout,
+		std::vector<std::vector<vk::DescriptorSet>> globalSets, star::StarPipeline& sharedPipeline) override; 
+
 protected:
 	std::unique_ptr<star::Texture> crackTexture;
 	std::unique_ptr<star::StarDescriptorSetLayout> staticSetLayout; 
@@ -42,7 +51,8 @@ protected:
 	DispNormObj(std::string objPath);
 
 	virtual void prepareDescriptors(star::StarDevice& device, int numSwapChainImages,
-		std::vector<std::unique_ptr<star::StarDescriptorSetLayout>>& groupLayout, std::vector<std::vector<vk::DescriptorSet>> globalSets) override;
+		std::vector<std::reference_wrapper<star::StarDescriptorSetLayout>> groupLayout, 
+		std::vector<std::vector<vk::DescriptorSet>> globalSets) override;
 
 	std::vector<std::unique_ptr<DispNormObjInstance>> instance; 
 

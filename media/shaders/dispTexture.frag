@@ -163,7 +163,13 @@ void main() {
     diffuseLight *= inFragMatDiffuse; 
     specularLight *= inFragMatSpecular; 
 
-    vec3 totalSurfaceColor = (ambientLight + diffuseLight + specularLight) * vec3(texture(textureSampler, inFragTextureCoordinate)); 
+    vec3 baseTextureColor = vec3(texture(textureSampler, inFragTextureCoordinate)); 
+    vec4 decalTextureColor = vec4(texture(decalMapSampler, inFragDecalTexCoords)); 
+
+    vec3 totalSurfaceColor = (ambientLight + diffuseLight + specularLight) * baseTextureColor ; 
+    
+    //add decal color 
+    totalSurfaceColor = totalSurfaceColor + (decalTextureColor.xyz * decalTextureColor.a); 
 
     outColor = vec4(totalSurfaceColor, 1.0);
 

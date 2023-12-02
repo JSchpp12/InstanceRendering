@@ -25,7 +25,6 @@ std::unique_ptr<DispNormObj> DispNormObj::New(std::string objPath)
 void DispNormObj::cleanupRender(star::StarDevice& device)
 {
 	this->crackTexture->cleanupRender(device); 
-	this->staticSetLayout.reset(); 
 
 	this->star::BasicObject::cleanupRender(device); 
 }
@@ -72,7 +71,13 @@ std::vector<std::unique_ptr<star::StarDescriptorSetLayout>> DispNormObj::getDesc
 	if (staticSet->getBindings().size() > 0)
 		allSets.push_back(std::move(staticSet));
 
-	return std::move(allSets);
+	auto decal = star::StarDescriptorSetLayout::Builder(device)
+		.addBinding(0, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment)
+		.build(); 
+
+	allSets.push_back(std::move(decal)); 
+
+	return allSets;
 }
 
 void DispNormObj::initRender(int numFramesInFlight)
@@ -82,26 +87,47 @@ void DispNormObj::initRender(int numFramesInFlight)
 	star::ManagerDescriptorPool::request(vk::DescriptorType::eCombinedImageSampler, numFramesInFlight);
 }
 
+void DispNormObj::prepRender(star::StarDevice& device, vk::Extent2D swapChainExtent, 
+	vk::PipelineLayout pipelineLayout, vk::RenderPass renderPass, int numSwapChainImages, 
+	std::vector<std::reference_wrapper<star::StarDescriptorSetLayout>> groupLayout,
+	std::vector<std::vector<vk::DescriptorSet>> globalSets)
+{
+	this->crackTexture->prepRender(device);
+
+	this->star::BasicObject::prepRender(device, swapChainExtent, pipelineLayout, renderPass, numSwapChainImages, groupLayout, globalSets);  
+}
+
+void DispNormObj::prepRender(star::StarDevice& device, int numSwapChainImages, 
+	std::vector<std::reference_wrapper<star::StarDescriptorSetLayout>> groupLayout,
+	std::vector<std::vector<vk::DescriptorSet>> globalSets, star::StarPipeline& sharedPipeline)
+{
+	this->crackTexture->prepRender(device);
+
+	this->star::BasicObject::prepRender(device, numSwapChainImages, groupLayout, globalSets, sharedPipeline); 
+}
+
 DispNormObj::DispNormObj(std::string objPath) : star::BasicObject(objPath)
 {
 	auto texPath = star::ConfigFile::getSetting(star::Config_Settings::mediadirectory) + "images/cracks.png"; 
 	this->crackTexture = std::make_unique<star::Texture>(texPath);
+	this->crackTexture->setAlpha(star::Color(0, 0, 0, 30)); 
 }
 
-void DispNormObj::prepareDescriptors(star::StarDevice& device, int numSwapChainImages, std::vector<std::unique_ptr<star::StarDescriptorSetLayout>>& fullGroupLayout, std::vector<std::vector<vk::DescriptorSet>> globalSets)
+void DispNormObj::prepareDescriptors(star::StarDevice& device, int numSwapChainImages, 
+	std::vector<std::reference_wrapper<star::StarDescriptorSetLayout>> fullGroupLayout,
+	std::vector<std::vector<vk::DescriptorSet>> globalSets)
 {
-	auto& groupLayout = *fullGroupLayout.at(1);
+	auto& groupLayout = fullGroupLayout.at(1);
 	star::StarDescriptorPool& pool = star::ManagerDescriptorPool::getPool();
-
-	//create descriptor layout
-	this->setLayout = star::StarDescriptorSetLayout::Builder(device)
-		.addBinding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex)
-		.addBinding(1, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex)
-		.addBinding(2, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex)
-		.build();
+	std::vector<std::unordered_map<int, vk::DescriptorSet>> finalizedSets; 
 
 	for (int i = 0; i < numSwapChainImages; i++) {
-		star::StarDescriptorWriter writer = star::StarDescriptorWriter(device, *this->setLayout, star::ManagerDescriptorPool::getPool());
+		std::unordered_map<int, vk::DescriptorSet> set; 
+		for (int j = 0; j < globalSets.at(i).size(); j++) {
+			set[j] = globalSets.at(i).at(j); 
+		}
+
+		star::StarDescriptorWriter writer = star::StarDescriptorWriter(device, groupLayout, star::ManagerDescriptorPool::getPool());
 
 		std::vector<vk::DescriptorBufferInfo> bufferInfos = std::vector<vk::DescriptorBufferInfo>(this->instances.front()->getBufferInfoSize().size());
 
@@ -115,36 +141,34 @@ void DispNormObj::prepareDescriptors(star::StarDevice& device, int numSwapChainI
 				bufferSize };
 			writer.writeBuffer(j, bufferInfos.at(j));
 		}
-		vk::DescriptorSet set = writer.build();
+		vk::DescriptorSet objectSet = writer.build();
 
-		globalSets.at(i).push_back(set);
+		vk::DescriptorSet objectTexSet; 
+		{
+			auto& staticLayout = fullGroupLayout.at(3);
+			star::StarDescriptorWriter writer = star::StarDescriptorWriter(device, staticLayout, star::ManagerDescriptorPool::getPool());
+
+			vk::DescriptorImageInfo imageInfo{
+				this->crackTexture->getSampler(),
+				this->crackTexture->getImageView(),
+				vk::ImageLayout::eShaderReadOnlyOptimal
+			};
+			writer.writeImage(0, imageInfo);
+			objectTexSet = writer.build();
+		}
+
+		set[1] = objectSet;
+		set[3] = objectTexSet; 
+
+		finalizedSets.push_back(set); 
 	}
+
+	auto& materialLayout = fullGroupLayout.at(2);
 
 	for (auto& mesh : this->getMeshes()) {
 		//descriptors
-		mesh->getMaterial().buildDescriptorSets(device, groupLayout, pool, globalSets, numSwapChainImages);
+		mesh->getMaterial().finalizeDescriptors(device, materialLayout, pool, finalizedSets, numSwapChainImages);
 	}
 
-	this->staticSetLayout = star::StarDescriptorSetLayout::Builder(device)
-		.addBinding(0, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment)
-		.build(); 
-
-	//build texture decal too
-	for (int i = 0; i < numSwapChainImages; i++) {
-		std::vector<vk::DescriptorSet> infos; 
-		star::StarDescriptorWriter writer = star::StarDescriptorWriter(device, *this->staticSetLayout, star::ManagerDescriptorPool::getPool()); 
-
-		vk::DescriptorImageInfo imageInfo{
-			this->crackTexture->getSampler(),
-			this->crackTexture->getImageView(),
-			vk::ImageLayout::eShaderReadOnlyOptimal
-		}; 
-		writer.writeImage(0, imageInfo); 
-		auto completeInfos = writer.build(); 
-
-		bufferInfos.push_back(completeInfos);
-
-		globalSets.at(i).push_back(infos); 
-	}
 
 }

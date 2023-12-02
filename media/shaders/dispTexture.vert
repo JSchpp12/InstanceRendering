@@ -66,5 +66,5 @@ void main() {
 	outFragMatDiffuse = inMatDiffuse; 
 	outFragMatSpecular = inMatSpecular; 
 	outFragMatShininess = inMatShininess; 
-	outFragDecalTexCoords = inTexCoord.xy; 
+	outFragDecalTexCoords = vec4(vec4(inTexCoord.xy, 0, 1) * textureDispMat[gl_InstanceIndex]).xy; 
 }
