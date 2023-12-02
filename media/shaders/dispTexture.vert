@@ -41,6 +41,8 @@ layout(location = 5) out vec3 outFragMatDiffuse;
 layout(location = 6) out vec3 outFragMatSpecular; 
 layout(location = 7) out float outFragMatShininess; 
 layout(location = 8) out mat3 outTBNMat; 
+layout(location = 12) out vec2 outFragDecalTexCoords; 
+
 
 
 void main() {
@@ -59,10 +61,10 @@ void main() {
 	//pass through needed properties to fragments
 	outFragPositionWorld = positionWorld.xyz; 
 	outFragColor = inColor; 
-	// vec2 texture_coord = textureDispMat[gl_instanceIndex] * inTexCoord; 
-	outFragTextureCoordinate = vec2(vec4(inTexCoord.xy, 1.0, 1.0) * textureDispMat[gl_InstanceIndex]).xy; 
+	outFragTextureCoordinate = inTexCoord.xy;
 	outFragMatAmbient = inMatAmbient; 
 	outFragMatDiffuse = inMatDiffuse; 
 	outFragMatSpecular = inMatSpecular; 
 	outFragMatShininess = inMatShininess; 
+	outFragDecalTexCoords = inTexCoord.xy; 
 }

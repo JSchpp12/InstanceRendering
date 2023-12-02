@@ -26,14 +26,20 @@ class DispNormObj : public star::BasicObject {
 public:
 	static std::unique_ptr<DispNormObj> New(std::string objPath); 
 
+	virtual void cleanupRender(star::StarDevice& device) override;
+
 	virtual star::StarObjectInstance& createInstance() override;
 
 	virtual std::unordered_map<star::Shader_Stage, star::StarShader> getShaders() override; 
 
 	virtual std::vector<std::unique_ptr<star::StarDescriptorSetLayout>> getDescriptorSetLayouts(star::StarDevice& device) override;
 
+	virtual void initRender(int numFramesInFlight) override;
 protected:
-	DispNormObj(std::string objPath) : star::BasicObject(objPath) {};
+	std::unique_ptr<star::Texture> crackTexture;
+	std::unique_ptr<star::StarDescriptorSetLayout> staticSetLayout; 
+
+	DispNormObj(std::string objPath);
 
 	virtual void prepareDescriptors(star::StarDevice& device, int numSwapChainImages,
 		std::vector<std::unique_ptr<star::StarDescriptorSetLayout>>& groupLayout, std::vector<std::vector<vk::DescriptorSet>> globalSets) override;

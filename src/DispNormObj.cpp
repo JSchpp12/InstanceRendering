@@ -22,6 +22,14 @@ std::unique_ptr<DispNormObj> DispNormObj::New(std::string objPath)
 	return std::unique_ptr<DispNormObj>(new DispNormObj(objPath));
 }
 
+void DispNormObj::cleanupRender(star::StarDevice& device)
+{
+	this->crackTexture->cleanupRender(device); 
+	this->staticSetLayout.reset(); 
+
+	this->star::BasicObject::cleanupRender(device); 
+}
+
 star::StarObjectInstance& DispNormObj::createInstance()
 {
 	int instanceCount = static_cast<int>(this->instances.size());
@@ -39,7 +47,7 @@ std::unordered_map<star::Shader_Stage, star::StarShader> DispNormObj::getShaders
 	shaders.insert(std::pair<star::Shader_Stage, star::StarShader>(star::Shader_Stage::vertex, star::StarShader(vertShaderPath, star::Shader_Stage::vertex)));
 
 	//load fragment shader
-	std::string fragShaderPath = star::ConfigFile::getSetting(star::Config_Settings::mediadirectory) + "/shaders/bump.frag";
+	std::string fragShaderPath = star::ConfigFile::getSetting(star::Config_Settings::mediadirectory) + "/shaders/dispTexture.frag";
 	shaders.insert(std::pair<star::Shader_Stage, star::StarShader>(star::Shader_Stage::fragment, star::StarShader(fragShaderPath, star::Shader_Stage::fragment)));
 
 	return shaders; 
@@ -65,6 +73,19 @@ std::vector<std::unique_ptr<star::StarDescriptorSetLayout>> DispNormObj::getDesc
 		allSets.push_back(std::move(staticSet));
 
 	return std::move(allSets);
+}
+
+void DispNormObj::initRender(int numFramesInFlight)
+{
+	this->star::BasicObject::initRender(numFramesInFlight); 
+
+	star::ManagerDescriptorPool::request(vk::DescriptorType::eCombinedImageSampler, numFramesInFlight);
+}
+
+DispNormObj::DispNormObj(std::string objPath) : star::BasicObject(objPath)
+{
+	auto texPath = star::ConfigFile::getSetting(star::Config_Settings::mediadirectory) + "images/cracks.png"; 
+	this->crackTexture = std::make_unique<star::Texture>(texPath);
 }
 
 void DispNormObj::prepareDescriptors(star::StarDevice& device, int numSwapChainImages, std::vector<std::unique_ptr<star::StarDescriptorSetLayout>>& fullGroupLayout, std::vector<std::vector<vk::DescriptorSet>> globalSets)
@@ -103,4 +124,27 @@ void DispNormObj::prepareDescriptors(star::StarDevice& device, int numSwapChainI
 		//descriptors
 		mesh->getMaterial().buildDescriptorSets(device, groupLayout, pool, globalSets, numSwapChainImages);
 	}
+
+	this->staticSetLayout = star::StarDescriptorSetLayout::Builder(device)
+		.addBinding(0, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment)
+		.build(); 
+
+	//build texture decal too
+	for (int i = 0; i < numSwapChainImages; i++) {
+		std::vector<vk::DescriptorSet> infos; 
+		star::StarDescriptorWriter writer = star::StarDescriptorWriter(device, *this->staticSetLayout, star::ManagerDescriptorPool::getPool()); 
+
+		vk::DescriptorImageInfo imageInfo{
+			this->crackTexture->getSampler(),
+			this->crackTexture->getImageView(),
+			vk::ImageLayout::eShaderReadOnlyOptimal
+		}; 
+		writer.writeImage(0, imageInfo); 
+		auto completeInfos = writer.build(); 
+
+		bufferInfos.push_back(completeInfos);
+
+		globalSets.at(i).push_back(infos); 
+	}
+
 }
